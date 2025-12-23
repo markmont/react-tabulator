@@ -19,7 +19,7 @@
 }
 
 /* --------- default react-tags styles */
-.react-tags__search input {
+.react-tags__comboBox input {
   width: 100% !important;
 }
 
@@ -70,7 +70,7 @@
   border-color: #B1B1B1;
 }
 
-.react-tags__search {
+.react-tags__comboBox {
   display: inline-block;
 
   /* match tag layout */
@@ -83,14 +83,14 @@
 
 @media screen and (min-width: 30em) {
 
-  .react-tags__search {
+  .react-tags__comboBox {
     /* this will become the offsetParent for suggestions */
     position: relative;
   }
 
 }
 
-.react-tags__search input {
+.react-tags__comboBox input {
   /* prevent autoresize overflowing the container */
   max-width: 100%;
 
@@ -105,11 +105,11 @@
   line-height: inherit;
 }
 
-.react-tags__search input::-ms-clear {
+.react-tags__comboBox input::-ms-clear {
   display: none;
 }
 
-.react-tags__suggestions {
+.react-tags__listBox {
   position: absolute;
   top: 100%;
   left: 0;
@@ -118,13 +118,13 @@
 
 @media screen and (min-width: 30em) {
 
-  .react-tags__suggestions {
+  .react-tags__listBox {
     width: 240px;
   }
 
 }
 
-.react-tags__suggestions ul {
+.react-tags__listBox ul {
   margin: 4px -1px;
   padding: 0;
   list-style: none;
@@ -134,27 +134,27 @@
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
 }
 
-.react-tags__suggestions li {
+.react-tags__listBox li {
   border-bottom: 1px solid #ddd;
   padding: 6px 8px;
 }
 
-.react-tags__suggestions li mark {
+.react-tags__listBox li mark {
   text-decoration: underline;
   background: none;
   font-weight: 600;
 }
 
-.react-tags__suggestions li:hover {
+.react-tags__listBox li:hover {
   cursor: pointer;
   background: #eee;
 }
 
-.react-tags__suggestions li.is-active {
+.react-tags__listBox li.is-active {
   background: #b7cfe0;
 }
 
-.react-tags__suggestions li.is-disabled {
+.react-tags__listBox li.is-disabled {
   opacity: 0.5;
   cursor: auto;
 }

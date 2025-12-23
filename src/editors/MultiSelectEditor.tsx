@@ -2,8 +2,7 @@ import * as React from 'react';
 import { render, findDOMNode } from 'react-dom';
 import { clone } from '../Utils';
 // import { parse, format } from 'date-fns';
-// import ReactTags from 'react-tag-autocomplete';
-const ReactTags = require('react-tag-autocomplete');
+import { ReactTags } from 'react-tag-autocomplete';
 
 const DEFAULT_DATE_INPUT_FORMAT = 'yyyy-MM-dd';
 
@@ -99,15 +98,15 @@ class Editor extends React.Component<IProps> {
         <ReactTags
           ref={(ref: any) => (this.ref = ref)}
           placeholder="Select or Type"
-          tags={values}
+          selected={values}
           suggestions={suggestions}
           allowNew={true}
-          autoresize={true}
+          allowResize={true}
           autofocus={this.state.autofocus}
           handleAddition={this.handleAddition}
           handleDelete={this.handleDelete}
           handleBlur={this.handleBlur}
-          minQueryLength={0}
+          // TODO: use onShouldExpand minQueryLength={0}
         />
       </div>
     );

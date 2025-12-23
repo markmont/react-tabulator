@@ -8,7 +8,7 @@ import { propsToOptions } from './ConfigUtils';
 // const { TabulatorFull: Tabulator } = Tabulator_Import;
 import { TabulatorFull as Tabulator } from 'tabulator-tables';
 
-import { Tabulator as TabulatorTypes } from './types/TabulatorTypes';
+import type { Tabulator as TabulatorTypes } from './types/TabulatorTypes';
 
 export interface ReactTabulatorOptions extends TabulatorTypes.Options {
   [k: string]: any;

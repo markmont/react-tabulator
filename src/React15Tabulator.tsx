@@ -1,7 +1,8 @@
 import * as React from 'react';
 import * as ReactDOM from 'react-dom';
 import { pickHTMLProps } from 'pick-react-known-prop';
-import { IProps, propsToOptions } from './ConfigUtils';
+import type { IProps } from './ConfigUtils';
+import { propsToOptions } from './ConfigUtils';
 import { isSameArray } from './Utils';
 
 /* tslint:disable-next-line */
