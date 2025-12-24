@@ -1,20 +1,17 @@
 import * as React from 'react';
-import * as ReactDOM from 'react-dom';
 import { pickHTMLProps } from 'pick-react-known-prop';
 import { propsToOptions } from './ConfigUtils';
 
 /* tslint:disable-next-line */
 // import * as Tabulator_Import from 'tabulator-tables';
 // const { TabulatorFull: Tabulator } = Tabulator_Import;
-import { TabulatorFull as Tabulator } from 'tabulator-tables';
+import * as Tabulator from 'tabulator-tables';
 
-import type { Tabulator as TabulatorTypes } from '@types/tabulator-tables';
-
-export interface ReactTabulatorOptions extends TabulatorTypes.Options {
+export interface ReactTabulatorOptions extends Tabulator.Options {
   [k: string]: any;
 }
 
-export interface ColumnDefinition extends TabulatorTypes.ColumnDefinition {}
+export type ColumnDefinition = Tabulator.ColumnDefinition
 
 export interface ReactTabulatorProps {
   columns?: ColumnDefinition[];
@@ -27,10 +24,9 @@ export interface ReactTabulatorProps {
 const ReactTabulator = (props: ReactTabulatorProps) => {
   const ref = React.useRef();
   const instanceRef: any = React.useRef();
-  const [mainId, setMainId] = React.useState(`tabulator-${+new Date()}-${Math.floor(Math.random() * 9999999)}`);
+  const [mainId, ] = React.useState(`tabulator-${+new Date()}-${Math.floor(Math.random() * 9999999)}`);
 
-  let htmlProps;
-  htmlProps = pickHTMLProps(props); // pick valid html props
+  const htmlProps: any  = pickHTMLProps(props); // pick valid html props
   delete htmlProps['data']; // don't render data & columns as attributes
   delete htmlProps['columns'];
 
@@ -42,7 +38,7 @@ const ReactTabulator = (props: ReactTabulatorProps) => {
       propOptions.data = data;
     }
 
-    instanceRef.current = new Tabulator(domEle, {
+    instanceRef.current = new Tabulator.TabulatorFull(domEle, {
       columns,
       ...propOptions,
       layout: props.layout ?? 'fitColumns', // fit columns to width of table (optional)
@@ -54,7 +50,9 @@ const ReactTabulator = (props: ReactTabulatorProps) => {
         (instanceRef.current as any).on(eventName, handler);
       });
     }
-    props.onRef && props.onRef(instanceRef);
+    if (props.onRef) {
+      props.onRef(instanceRef);
+    }
   };
 
   React.useEffect(() => {
