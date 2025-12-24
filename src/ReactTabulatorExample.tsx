@@ -123,14 +123,14 @@ export default () => {
         last_page: 'last'
       },
       paginationSize: 5,
-      ajaxResponse: (url, params, response) => {
+      ajaxResponse: (url: string, params: any, response: any) => {
         console.log('url, params, response', url, params, response);
         return {
           data: response.data,
           last: response.total_pages
         };
       },
-      ajaxError: function (error) {
+      ajaxError: function (error: any) {
         console.log('ajaxError', error);
       }
     };
@@ -140,7 +140,7 @@ export default () => {
         columns={columns}
         options={options}
         events={{
-          dataLoaded: function (data) {
+          dataLoaded: function (data: any) {
             console.log('dataLoaded', data);
             // return data; //return the response data to tabulator
             let modResponse: any = {};
@@ -148,7 +148,7 @@ export default () => {
             modResponse.last = 5;
             return modResponse;
           },
-          ajaxError: function (error) {
+          ajaxError: function (error: any) {
             console.log('ajaxError', error);
           }
         }}

@@ -58,7 +58,7 @@ export default class extends React.Component<IProps, Partial<IState>> {
 
   // this is for React 15.x only
   componentWillReceiveProps(props: IProps) {
-    if (!isSameArray(this.state.data, props.data)) {
+    if (!isSameArray(this.state.data, props.data !== undefined ? props.data : [])) {
       // console.log('- data changed');
       this.setState({ data: props.data }, () => {
         this.table && this.table.setData(this.state.data);
