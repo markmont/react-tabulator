@@ -1,10 +1,5 @@
 import * as React from 'react';
-import { render } from 'react-dom';
 import {createRoot} from "react-dom/client";
-
-export function clone(obj: any) {
-  return JSON.parse(JSON.stringify(obj));
-}
 
 export function isSameArray(a: any[], b: any[]) {
   let i = a && a.length ? a.length : 0;
@@ -19,30 +14,11 @@ export function isSameArray(a: any[], b: any[]) {
   return true;
 }
 
-// source: https://stackoverflow.com/questions/4816099/chrome-sendrequest-error-typeerror-converting-circular-structure-to-json
-function stringifyCensor(censor: any) {
-  let i = 0;
-  return function (key: string, value: any) {
-    if (i !== 0 && typeof censor === 'object' && typeof value == 'object' && censor == value) {
-      return '[Circular]';
-    }
-    if (i >= 29) {
-      // seems to be a harded maximum of 30 serialized objects?
-      return '[Unknown]';
-    }
-    ++i; // so we know we aren't using the original object anymore
-    return value;
-  };
-}
-
-export function isSameObject(a: any, b: any) {
-  return JSON.stringify(a, stringifyCensor(a)) === JSON.stringify(b, stringifyCensor(b));
-}
-
 export function reactFormatter(JSX: any) {
+  // @ts-expect-error: formatterParams is not used here but is part of the Tabulator formatter signature
   return function customFormatter(cell: any, formatterParams: any, onRendered: (callback: () => void) => void) {
     // cell - the cell component
-    // formatterParams - parameters set for the column
+    // formatterParams - parameters set for the column, see https://github.com/olifolkerd/tabulator/blob/master/src/js/modules/Format/defaults/formatters/toggle.js
     // onRendered - function to call when the formatter has been rendered
     const renderFn = () => {
       const cellEl = cell.getElement();

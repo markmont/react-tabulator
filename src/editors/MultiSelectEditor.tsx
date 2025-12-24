@@ -1,6 +1,5 @@
 import * as React from 'react';
 import { render, findDOMNode } from 'react-dom';
-import { clone } from '../Utils';
 // import { parse, format } from 'date-fns';
 import { ReactTags } from 'react-tag-autocomplete';
 
@@ -73,7 +72,7 @@ class Editor extends React.Component<IProps> {
     const newValue = this.ref.input.input.value;
     if (newValue) {
       // console.log(111, newValue, this.ref);
-      const values = clone(this.state.values);
+      const values = structuredClone(this.state.values);
       values.push({ id: newValue, name: newValue });
       // console.log('- handleBlur ', values);
       this.setValueOnSuccess(values);
