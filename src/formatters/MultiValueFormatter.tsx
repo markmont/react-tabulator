@@ -9,8 +9,8 @@ const createCellEl = () => {
 // example: { title: 'Pets', field: 'pets', formatter: MultiValueFormatter, formatterParams: { style: 'PILL' } }
 // default style: comma separated plain text
 // other styles: PILL
-// eslint-disable-next-line @typescript-eslint/no-unused-vars -- onRendered is provided by Tabulator but not used here
-export default function MultiValueFormatter(cell: any, formatterParams: any, onRendered: (fn: any) => void) {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars -- _onRendered is provided by Tabulator but not used here
+export default function MultiValueFormatter(cell: any, formatterParams: any, _onRendered: (fn: any) => void) {
   const style = formatterParams.style || ''; // comma separated plain text
 
   const arr = cell.getValue() || [];
