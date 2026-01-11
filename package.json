@@ -35,15 +35,14 @@
   },
   "homepage": "https://github.com/ngduc/react-tabulator#readme",
   "dependencies": {
-    "@types/react-tag-autocomplete": "^6.3.3",
     "@types/tabulator-tables": "6.3.1",
     "pick-react-known-prop": "^0.1.5",
     "react-tag-autocomplete": "^7.5.1",
     "tabulator-tables": "6.3.1"
   },
   "peerDependencies": {
-    "react": ">=15.6.2 || ^16.0.0 || ^17.0.0",
-    "react-dom": ">=15.6.2 || ^16.0.0 || ^17.0.0"
+    "react": "^18.0.0 || ^19.0.0",
+    "react-dom": "^18.0.0 || ^19.0.0"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.1",
@@ -59,6 +58,7 @@
     "globals": "^16.5.0",
     "jest": "^30.2.0",
     "jest-puppeteer": "^11.0.0",
+    "prettier": "^3.6.2",
     "puppeteer": "^24.34.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",

@@ -1,129 +1,136 @@
-import * as React from 'react';
-import { render, findDOMNode } from 'react-dom';
-// import { parse, format } from 'date-fns';
-import { ReactTags } from 'react-tag-autocomplete';
-
-const DEFAULT_DATE_INPUT_FORMAT = 'yyyy-MM-dd';
-
-const inputCss = {
-  width: '100%',
-  height: '100%',
-  fontSize: '1em',
-  fontFamily: 'inherit'
-};
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { createRoot, type Root } from 'react-dom/client';
+import { createPortal } from 'react-dom';
+import { ReactTags, type Tag } from 'react-tag-autocomplete';
 
 interface IProps {
   cell: any;
-  onRendered: (fn: any) => void;
-  success: (value: any) => void;
-  cancel: () => void;
+  onRendered: (fn: () => void) => void;
+  success: (value: string[]) => void;
   editorParams?: any;
+  editorId: string;
+  root: Root;
 }
 
-class Editor extends React.Component<IProps> {
-  state = { value: '', values: [], autofocus: false };
-  ref: any = null;
-  tags: [];
+const Editor: React.FC<IProps> = ({ cell, onRendered, success, editorParams, editorId, root }) => {
+  // Map cell values to tag objects
+  const [values, setValues] = useState<Tag[]>(
+    (cell.getValue() || []).map((item: any) => (typeof item === 'string' ? { value: item, label: item } : item))
+  );
 
-  componentDidMount() {
-    this.props.onRendered(() => {
-      const el: any = findDOMNode(this.ref);
-      el.style.zIndex = 1;
-      el.parentElement.parentElement.parentElement.style.overflow = 'inherit';
+  const containerRef = useRef<any>(null);
+  const portalRef = useRef<any>(null);
+  const tagsApi = useRef<any>(null);
 
-      el.querySelector('input').focus();
-      const values = (this.props.cell.getValue() || []).map((item: any) => {
-        return typeof item === 'string' ? { id: item, name: item } : item;
-      });
-      this.setState({ values });
+  // On mount, position the portal and focus the tags component
+  useEffect(() => {
+    if (containerRef.current) {
+      // Tell our caller the mouse button was released and the user isn't trying to move a row
+      const container = containerRef.current;
+      const e = new MouseEvent('mouseup', { bubbles: true, cancelable: true });
+      container.dispatchEvent(e);
+      // Position the portal over the cell
+      if (portalRef.current) {
+        const pos = container.getBoundingClientRect();
+        const portal = portalRef.current;
+        portal.style.top = `${pos.top}px`;
+        portal.style.left = `${pos.left}px`;
+        portal.style.width = `${pos.width}px`;
+      }
+    }
+    tagsApi.current?.input?.focus?.();
+    onRendered(() => {});
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps -- no dependencies means only run on mount
+
+  const onDelete = useCallback(
+    (tagIndex: number) => {
+      const newValues = values.filter((_, index) => index !== tagIndex);
+      setValues(newValues);
+    },
+    [values]
+  );
+
+  const onAdd = useCallback(
+    (newTag: Tag) => {
+      const newValues = [...values, newTag];
+      setValues(newValues);
+    },
+    [values]
+  );
+
+  const onBlur = useCallback(() => {
+    // The DOM isn't yet updated, so use requestAnimationFrame to wait until after the DOM paint
+    window.requestAnimationFrame(() => {
+      const el = document.getElementById(editorId);
+      if (el && !el.classList.contains('is-active')) {
+        root.unmount();
+        success(values.map((v) => v.value as string));
+      }
     });
-  }
+  }, [editorId, root, success, values]);
 
-  setValueOnSuccess = (values = this.state.values) => {
-    const { success, cancel } = this.props;
-    // console.log('setValueOnSuccess: ', values);
-    success(values);
-    // cancel();
-  };
-
-  handleDelete = (i: number) => {
-    // console.log('- handleDelete ', i);
-    const { values } = this.state;
-    const newValues = values.filter((item, index) => index !== i);
-    this.setState({ values: newValues }, () => {
-      this.setValueOnSuccess(newValues);
+  // If editorParams.values is present and is an array, convert any entries in the old form
+  //   { id: 'cat', name: 'cat' }
+  // to the new form
+  //   { value: 'cat', label: 'cat' }
+  const suggestions = useMemo(() => {
+    const epValues = editorParams?.values || [];
+    const epValuesFixed = epValues.map((item: any) => {
+      if (!('value' in item) && 'id' in item && 'name' in item) {
+        return { value: item.id, label: item.name };
+      }
+      return item;
     });
-  };
-
-  handleAddition = (item: any) => {
-    const { values } = this.state;
-    if (item.name) {
-      // console.log('- handleAddition: ', item);
-      values.push({ id: item.name, name: item.name });
-      this.setState({ values }, () => {
-        this.setValueOnSuccess(values);
-      });
+    if (JSON.stringify(epValues) !== JSON.stringify(epValuesFixed)) {
+      console.log(
+        'Deprecation warning: update ReactTag editorParams.values from { id: "", name: "" }, to { value: "", label: "" }'
+      );
     }
-  };
+    return epValuesFixed;
+  }, [editorParams?.values]);
 
-  // order: handleBlur => sucess() => grid's cellEdited => grid's dataChanged => handleAddition
-  handleBlur = () => {
-    const { cancel } = this.props;
-    const newValue = this.ref.input.input.value;
-    if (newValue) {
-      // console.log(111, newValue, this.ref);
-      const values = structuredClone(this.state.values);
-      values.push({ id: newValue, name: newValue });
-      // console.log('- handleBlur ', values);
-      this.setValueOnSuccess(values);
-    } else {
-      cancel();
-    }
+  return (
+    <div ref={containerRef}>
+      {createPortal(
+        <div ref={portalRef} style={{ position: 'fixed', zIndex: 1 }}>
+          <ReactTags
+            ref={tagsApi}
+            placeholderText="Select or type"
+            selected={values}
+            suggestions={suggestions}
+            allowNew={true}
+            allowResize={true}
+            onAdd={onAdd}
+            onDelete={onDelete}
+            onBlur={onBlur}
+            id={editorId} // avoid conflicts between multiple ReactTags instances
+          />
+        </div>,
+        document.body
+      )}
+    </div>
+  );
+};
 
-    const el: any = findDOMNode(this.ref);
-    if (el && el.parentElement.parentElement.parentElement) {
-      el.parentElement.parentElement.parentElement.style.overflow = 'hidden';
-    }
-    // console.log('- handleBlur END');
-  };
-
-  render() {
-    const { editorParams } = this.props;
-    const { values } = this.state;
-    const suggestions = editorParams.values;
-
-    return (
-      <div>
-        <ReactTags
-          ref={(ref: any) => (this.ref = ref)}
-          placeholder="Select or Type"
-          selected={values}
-          suggestions={suggestions}
-          allowNew={true}
-          allowResize={true}
-          autofocus={this.state.autofocus}
-          handleAddition={this.handleAddition}
-          handleDelete={this.handleDelete}
-          handleBlur={this.handleBlur}
-          // TODO: use onShouldExpand minQueryLength={0}
-        />
-      </div>
-    );
-  }
-}
-
-export default function(
+export default function MultiSelectEditor(
   cell: any,
   onRendered: (fn: any) => void,
   success: (value: any) => void,
-  cancel: () => void,
+  _cancel: () => void,
   editorParams?: any
 ) {
-  const container = document.createElement('div');
-  container.style.height = '100%';
-  render(
-    <Editor cell={cell} onRendered={onRendered} success={success} cancel={cancel} editorParams={editorParams} />,
-    container
+  const reactContainer = document.createElement('div');
+  reactContainer.style.height = '100%';
+  const root = createRoot(reactContainer);
+  root.render(
+    <Editor
+      cell={cell}
+      onRendered={onRendered}
+      success={success}
+      editorParams={editorParams}
+      editorId={'rt-' + Math.random().toString(36).substring(2, 13)} // prevents conflict between multiple editors
+      root={root}
+    />
   );
-  return container;
+  return reactContainer;
 }

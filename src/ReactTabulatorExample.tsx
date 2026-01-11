@@ -49,9 +49,9 @@ const data = [
 // Editable Example:
 const colorOptions = { ['']: '&nbsp;', red: 'red', green: 'green', yellow: 'yellow' };
 const petOptions = [
-  { id: 'cat', name: 'cat' },
-  { id: 'dog', name: 'dog' },
-  { id: 'fish', name: 'fish' }
+  { value: 'cat', label: 'cat' },
+  { value: 'dog', label: 'dog' },
+  { value: 'fish', label: 'fish' }
 ];
 const editableColumns: any[] = [
   { title: 'Name', field: 'name', width: 150, editor: 'input', headerFilter: 'input' },
@@ -59,9 +59,9 @@ const editableColumns: any[] = [
   {
     title: 'Favourite Color',
     field: 'color',
-    editor: 'select',
+    editor: 'list',
     editorParams: { allowEmpty: true, showListOnEmpty: true, values: colorOptions },
-    headerFilter: 'select',
+    headerFilter: 'list',
     headerFilterParams: { values: colorOptions }
   },
   { title: 'Date Of Birth', field: 'dob', editor: DateEditor, editorParams: { format: 'MM/DD/YYYY' } },
