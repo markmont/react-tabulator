@@ -46,9 +46,6 @@ Edit:
 Export:
 - Export to CSV file - please use this workaround: https://github.com/ngduc/react-tabulator/issues/76
 
-Support React v15.x (legacy, stopped support from 2021-01)
-- With React 15.x - [Link](https://codesandbox.io/s/react-tabulator-with-react-15-tppef?file=/src/components/Home.js)
-
 # Show cases
 
 *If you are using ReactTabulator in your project, please feel free to open a PR or contact me to add it here:*

@@ -27,7 +27,6 @@ Tabulator's features:
 - React Cell Editors: DateEditor, MultiSelectEditor, etc.
 - React Cell Formatters: MultiValueFormatter, etc.
 - React Filters (TBD).
-- For the legacy React 15.x, use: import React15Tabulator.
 
 ### 📦 Usage
 
