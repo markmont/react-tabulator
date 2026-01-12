@@ -5,7 +5,7 @@ const twoDigits = '\\d\\d';
 const threeDigits = '\\d{3}';
 const fourDigits = '\\d{4}';
 const word = '[^\\s]+';
-const literal = /\[([^]*?)\]/gm;
+const literal = /\[([^]*?)]/gm;
 
 type DateInfo = {
   year: number;
@@ -36,7 +36,7 @@ export type Months = [string, string, string, string, string, string, string, st
 function shorten<T extends string[]>(arr: T, sLen: number): string[] {
   const newArr: string[] = [];
   for (let i = 0, len = arr.length; i < len; i++) {
-    newArr.push(arr[i].substr(0, sLen));
+    newArr.push(arr[i].substring(0, sLen + 1));
   }
   return newArr;
 }
@@ -53,14 +53,13 @@ const monthUpdate = (arrName: 'monthNames' | 'monthNamesShort' | 'dayNames' | 'd
   return null;
 };
 
-export function assign<A>(a: A): A;
+//export function assign<A>(a: A): A;
 export function assign<A, B>(a: A, b: B): A & B;
-export function assign<A, B, C>(a: A, b: B, c: C): A & B & C;
-export function assign<A, B, C, D>(a: A, b: B, c: C, d: D): A & B & C & D;
+//export function assign<A, B, C>(a: A, b: B, c: C): A & B & C;
+//export function assign<A, B, C, D>(a: A, b: B, c: C, d: D): A & B & C & D;
 export function assign(origObj: any, ...args: any[]): any {
   for (const obj of args) {
     for (const key in obj) {
-      // @ts-ignore ex
       origObj[key] = obj[key];
     }
   }
@@ -126,7 +125,7 @@ const formatFlags: Record<string, (dateObj: Date, i18n: I18nSettings) => string>
   MM: (dateObj: Date): string => pad(dateObj.getMonth() + 1),
   MMM: (dateObj: Date, i18n: I18nSettings): string => i18n.monthNamesShort[dateObj.getMonth()],
   MMMM: (dateObj: Date, i18n: I18nSettings): string => i18n.monthNames[dateObj.getMonth()],
-  YY: (dateObj: Date): string => pad(String(dateObj.getFullYear()), 4).substr(2),
+  YY: (dateObj: Date): string => pad(String(dateObj.getFullYear()), 4).substring(2),
   YYYY: (dateObj: Date): string => pad(dateObj.getFullYear(), 4),
   h: (dateObj: Date): string => String(dateObj.getHours() % 12 || 12),
   hh: (dateObj: Date): string => pad(dateObj.getHours() % 12 || 12),
@@ -152,7 +151,7 @@ const formatFlags: Record<string, (dateObj: Date, i18n: I18nSettings) => string>
   }
 };
 
-type ParseInfo = [keyof DateInfo, string, ((v: string, i18n: I18nSettings) => number | null)?, string?];
+type ParseInfo = [keyof DateInfo | null, string, ((v: string, i18n: I18nSettings) => number | null)?, string?];
 const monthParse = (v: string): number => +v - 1;
 const emptyDigits: ParseInfo = [null, twoDigitsOptional];
 const emptyWord: ParseInfo = [null, word];
@@ -194,7 +193,7 @@ const parseFlags: Record<string, ParseInfo> = {
     twoDigits,
     (v: string): number => {
       const now = new Date();
-      const cent = +('' + now.getFullYear()).substr(0, 2);
+      const cent = +('' + now.getFullYear()).substring(0, 3);
       return +('' + (+v > 68 ? cent - 1 : cent) + v);
     }
   ],
@@ -242,9 +241,10 @@ const setGlobalDateMasks = (masks: { [key: string]: string }): { [key: string]: 
  * @method format
  * @param {Date|number} dateObj
  * @param {string} mask Format of the date, i.e. 'mm-dd-yy' or 'shortDate'
+ * @param {I18nSettingsOptional} i18n Full or subset of I18N settings
  * @returns {string} Formatted date string
  */
-const format = (dateObj: Date, mask: string = globalMasks['default'], i18n: I18nSettingsOptional = {}): string => {
+const format = (dateObj: Date | number, mask: string = globalMasks['default'], i18n: I18nSettingsOptional = {}): string => {
   if (typeof dateObj === 'number') {
     dateObj = new Date(dateObj);
   }
@@ -258,7 +258,7 @@ const format = (dateObj: Date, mask: string = globalMasks['default'], i18n: I18n
   const literals: string[] = [];
 
   // Make literals inactive by replacing them with @@@
-  mask = mask.replace(literal, function ($0, $1) {
+  mask = mask.replace(literal, function (_$0, $1) {
     literals.push($1);
     return '@@@';
   });
@@ -267,22 +267,18 @@ const format = (dateObj: Date, mask: string = globalMasks['default'], i18n: I18n
   // Apply formatting rules
   mask = mask.replace(token, ($0) => formatFlags[$0](dateObj, combinedI18nSettings));
   // Inline literal values back into the formatted value
-  return mask.replace(/@@@/g, () => literals.shift());
+  return mask.replace(/@@@/g, () => (literals.shift() || ''));
 };
 
 /**
- * Parse a date string into a Javascript Date object /
+ * Parse a date string into a JavaScript Date object /
  * @method parse
  * @param {string} dateStr Date string
  * @param {string} format Date parse format
- * @param {i18n} I18nSettingsOptional Full or subset of I18N settings
+ * @param {I18nSettingsOptional} i18n Full or subset of I18N settings
  * @returns {Date|null} Returns Date object. Returns null what date string is invalid or doesn't match format
  */
 function parse(dateStr: string, format: string, i18n: I18nSettingsOptional = {}): Date | null {
-  if (typeof format !== 'string') {
-    throw new Error('Invalid format in fecha parse');
-  }
-
   // Check to see if the format is actually a mask
   format = globalMasks[format] || format;
 
@@ -309,7 +305,7 @@ function parse(dateStr: string, format: string, i18n: I18nSettingsOptional = {})
   const literals: string[] = [];
 
   // Replace all the literals with @@@. Hopefully a string that won't exist in the format
-  let newFormat = format.replace(literal, ($0, $1) => {
+  let newFormat = format.replace(literal, (_$0, $1) => {
     literals.push(regexEscape($1));
     return '@@@';
   });
@@ -322,11 +318,13 @@ function parse(dateStr: string, format: string, i18n: I18nSettingsOptional = {})
     const [field, regex, , requiredField] = info;
 
     // Check if the person has specified the same field twice. This will lead to confusing results.
-    if (specifiedFields[field]) {
+    if (field && specifiedFields[field]) {
       throw new Error(`Invalid format. ${field} specified twice in format`);
     }
 
-    specifiedFields[field] = true;
+    if (field) {
+      specifiedFields[field] = true;
+    }
 
     // Check if there are any required fields. For instance, 12 hour time requires AM/PM specified
     if (requiredField) {
@@ -345,7 +343,7 @@ function parse(dateStr: string, format: string, i18n: I18nSettingsOptional = {})
   });
 
   // Add back all the literals after
-  newFormat = newFormat.replace(/@@@/g, () => literals.shift());
+  newFormat = newFormat.replace(/@@@/g, () => (literals.shift() || ''));
 
   // Check if the date string matches the format. If it doesn't return null
   const matches = dateStr.match(new RegExp(newFormat, 'i'));
@@ -365,7 +363,9 @@ function parse(dateStr: string, format: string, i18n: I18nSettingsOptional = {})
       return null;
     }
 
-    dateInfo[field] = value;
+    if (field) {
+      dateInfo[field] = value;
+    }
   }
 
   if (dateInfo.isPm === 1 && dateInfo.hour != null && +dateInfo.hour !== 12) {
@@ -395,7 +395,7 @@ function parse(dateStr: string, format: string, i18n: I18nSettingsOptional = {})
     ['second', 'getSeconds']
   ];
   for (let i = 0, len = validateFields.length; i < len; i++) {
-    // Check to make sure the date field is within the allowed range. Javascript dates allows values
+    // Check to make sure the date field is within the allowed range. JavaScript dates allows values
     // outside the allowed range. If the values don't match the value was invalid
     if (
       specifiedFields[validateFields[i][0]] &&
@@ -421,11 +421,5 @@ function parse(dateStr: string, format: string, i18n: I18nSettingsOptional = {})
     )
   );
 }
-export default {
-  format,
-  parse,
-  defaultI18n,
-  setGlobalDateI18n,
-  setGlobalDateMasks
-};
+
 export { format, parse, defaultI18n, setGlobalDateI18n, setGlobalDateMasks };
