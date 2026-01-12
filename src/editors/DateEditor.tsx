@@ -1,11 +1,10 @@
 import * as React from 'react';
-import { render } from 'react-dom';
-// import { parse, format } from 'date-fns';
+import { createRoot } from 'react-dom/client';
 import { parse, format } from './DateEditorUtils';
 
 const DEFAULT_DATE_INPUT_FORMAT = 'YYYY-MM-DD'; // date-fns 'yyyy-MM-dd';
 
-const inputCss = {
+const inputCss: React.CSSProperties = {
   width: '100%',
   height: '100%',
   fontSize: '1em',
@@ -14,108 +13,111 @@ const inputCss = {
 
 interface IProps {
   cell: any;
-  onRendered: (fn: any) => void;
+  onRendered: (fn: () => void) => void;
   success: (value: any) => void;
   cancel: () => void;
   editorParams?: any;
 }
 
-class Editor extends React.Component<IProps> {
-  state = { value: '' };
-  ref: any = null;
-  // date-fns format 'MM/dd/yyyy'
-  format = this.props.editorParams.format || 'MM/DD/YYYY'; // TODO: detect from user locale & set default.
+function Editor(props: IProps): JSX.Element {
+  const { cell, onRendered, success, cancel, editorParams } = props;
+  const inputRef = React.useRef<HTMLInputElement | null>(null);
+  const formatStr = editorParams?.format ?? 'MM/DD/YYYY';
 
-  componentDidMount() {
-    this.props.onRendered(() => {
-      const value = this.props.cell.getValue();
-      this.setState({ value });
-      this.ref.focus();
-    });
-  }
+  const [rawValue, setRawValue] = React.useState<string>(cell.getValue() ?? '');
 
-  setValueOnSuccess = (value = this.state.value) => {
-    const { success } = this.props;
-    if (!value) {
-      // user deleted value in the cell => set to ''
-      // const result = format(new Date(), this.format);
-      success('');
-      return
-    }
-    let result = value;
-    try {
-      if (result.indexOf('-') > 0) {
-        // value is "yyyy-MM-dd" => parse it
-        const valueDate = parse(value, 'YYYY-MM-DD');
-        result = format(valueDate, this.format);
+  // compute the default value for the date input (YYYY-MM-DD)
+  const defaultInputValue = React.useMemo(() => {
+    const parsed = parse(cell.getValue(), formatStr);
+    if (parsed) {
+      try {
+        return format(parsed, DEFAULT_DATE_INPUT_FORMAT);
+      } catch (err) {
+        console.error(err);
       }
-    } catch(err) {
-      console.error('ERROR', err);
-      result = format(new Date(), DEFAULT_DATE_INPUT_FORMAT);
     }
-    success(result);
+    return format(new Date(), DEFAULT_DATE_INPUT_FORMAT);
+  }, [cell, formatStr]);
+
+  React.useEffect(() => {
+    onRendered(() => {
+      inputRef.current?.focus();
+    });
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps -- no dependencies means only run on mount
+
+  const setValueOnSuccess = React.useCallback(
+    (value = rawValue) => {
+      if (!value) {
+        // user deleted value in the cell => set to ''
+        // const result = format(new Date(), this.format);
+        success('');
+        return;
+      }
+
+      let result = value;
+      try {
+        if (result.indexOf('-') > 0) {
+          // value is "yyyy-MM-dd" => parse it
+          const valueDate = parse(value, 'YYYY-MM-DD');
+          if (valueDate) {
+            result = format(valueDate, formatStr);
+          } else {
+            throw new Error('Invalid date parsed');
+          }
+        }
+      } catch (err) {
+        console.error('ERROR', err);
+        result = format(new Date(), DEFAULT_DATE_INPUT_FORMAT);
+      }
+
+      success(result);
+    },
+    [rawValue, success, formatStr]
+  );
+
+  const onChange = (ev: React.ChangeEvent<HTMLInputElement>) => {
+    setRawValue(ev.target.value);
   };
 
-  onChange = (ev: any) => {
-    const value = ev.target.value;
-    this.setState({ value });
-  };
-
-  onKeyPress = (ev: any) => {
-    const { cancel } = this.props;
-    if (ev.keyCode === 13) {
-      // Enter pressed. If value is '' => set to today:
+  const onKeyUp = (ev: React.KeyboardEvent<HTMLInputElement>) => {
+    if (ev.key === 'Enter') {
       const today = format(new Date(), DEFAULT_DATE_INPUT_FORMAT);
-      const value = this.state.value || today;
-      this.setValueOnSuccess(value);
-    } else if (ev.keyCode === 27) {
+      const value = rawValue || today;
+      setValueOnSuccess(value);
+    } else if (ev.key === 'Escape') {
       cancel();
     }
   };
 
-  onBlur = () => {
-    this.setValueOnSuccess();
+  const onBlur = () => {
+    setValueOnSuccess();
   };
 
-  render() {
-    const { cell } = this.props;
-    const valueDt = parse(cell.getValue(), this.format);
-    // console.log('this.format', this.format);
-    // console.log('cell.getValue()', cell.getValue());
-    // console.log('valueDt', valueDt);
-
-    let value = format(new Date(), DEFAULT_DATE_INPUT_FORMAT)
-    try {
-      value = format(valueDt, DEFAULT_DATE_INPUT_FORMAT);
-    } catch(err) {}
-
-    return (
-      <input
-        type="date"
-        ref={r => (this.ref = r)}
-        defaultValue={value}
-        // value={value}
-        onBlur={this.onBlur}
-        onChange={this.onChange}
-        onKeyUp={this.onKeyPress}
-        style={inputCss}
-      />
-    );
-  }
+  return (
+    <input
+      type="date"
+      ref={(r) => (inputRef.current = r)}
+      defaultValue={defaultInputValue}
+      onBlur={onBlur}
+      onChange={onChange}
+      onKeyUp={onKeyUp}
+      style={inputCss}
+    />
+  );
 }
 
-export default function(
+export default function DateEditor(
   cell: any,
-  onRendered: (fn: any) => void,
+  onRendered: (fn: () => void) => void,
   success: (value: any) => void,
   cancel: () => void,
   editorParams?: any
 ) {
   const container = document.createElement('div');
   container.style.height = '100%';
-  render(
-    <Editor cell={cell} onRendered={onRendered} success={success} cancel={cancel} editorParams={editorParams} />,
-    container
+  const root = createRoot(container);
+  root.render(
+    <Editor cell={cell} onRendered={onRendered} success={success} cancel={cancel} editorParams={editorParams} />
   );
   return container;
 }
