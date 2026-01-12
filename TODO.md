@@ -11,11 +11,14 @@ React Tabulator
 
 ### In Progress
 
-- [ ] upgrade dependencies  
-- [ ] fix: MultiSelectEditor is broken  
+- [ ] new data source for asynchronous data example  
+- [ ] expand tests  
+- [ ] release version 0.30.0 under alternate name  
 
 ### Done ✓
 
+- [x] fix: MultiSelectEditor is broken  
+- [x] upgrade dependencies  
 - [x] use Github Action  
 - [x] add more Codesandbox examples  
 - [x] capture a GIF demo  
